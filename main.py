@@ -35,7 +35,6 @@ def run_console_tests():
         except Exception as e:
             print(f"Mission failed: {e}")
 
-# --- ВАЖЛИВО: Огортаємо логіку в функцію ---
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "api":
         print("Запуск API сервера...")

@@ -4,10 +4,8 @@ import uuid
 import sys
 import os
 
-# Додає кореневу директорію до шляхів
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# --- НАЛАШТУВАННЯ СТОРІНКИ ---
 st.set_page_config(
     page_title="ORION | Drone Command",
     page_icon="📡",
@@ -17,7 +15,6 @@ st.set_page_config(
 
 API_URL = "http://localhost:8000"
 
-# --- CUSTOM CSS (HUD STYLE) ---
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e6edf3; }
@@ -57,7 +54,6 @@ col_sidebar, col_main = st.columns([1, 2], gap="large")
 
 with col_sidebar:
     st.markdown("### 🛠 MISSION CONFIG")
-    # ВИПРАВЛЕННЯ: Використовуємо HTML div замість st.container(border=True)
     st.markdown('<div class="custom-border">', unsafe_allow_html=True)
     
     m_id = st.text_input("MISSION ID", value=str(uuid.uuid4())[:8].upper())
@@ -85,19 +81,19 @@ with col_sidebar:
             with st.spinner('Uplinking to drone swarm...'):
                 response = requests.post(f"{API_URL}/mission/run", json=payload, timeout=5)
                 if response.status_code == 200:
-                    st.success(f"✅ MISSION {m_id} DEPLOYED")
+                    st.success(f"MISSION {m_id} DEPLOYED")
                     st.session_state['last_mission_id'] = m_id
                 else:
-                    st.error(f"❌ FAILED: {response.json().get('detail')}")
+                    st.error(f"FAILED: {response.json().get('detail')}")
         except requests.exceptions.ConnectionError:
-            st.error("🛑 CRITICAL: SERVER OFFLINE (Run main.py)")
+            st.error("CRITICAL: SERVER OFFLINE (Run main.py)")
         except Exception as e:
-            st.error(f"🛑 ERROR: {e}")
+            st.error(f"ERROR: {e}")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_main:
-    st.markdown("### 📊 TELEMETRY & LOGS")
+    st.markdown("### TELEMETRY & LOGS")
     search_col, _ = st.columns([2,1])
     with search_col:
         default_id = st.session_state.get('last_mission_id', "")
@@ -115,9 +111,8 @@ with col_main:
                 m4.metric("BATTERY", "87%", "-2%")
                 
                 logs_html = ""
-                # Обробка результату, який може бути рядком або списком
                 results_data = data["result"]
-                if isinstance(results_data, dict): # Якщо це словник з деталями
+                if isinstance(results_data, dict): 
                     events = results_data.get("events", [])
                     logs = events + [f"Task: {results_data.get('task_result')}"]
                 elif isinstance(results_data, list):
@@ -129,8 +124,8 @@ with col_main:
                     logs_html += f"<div style='border-bottom:1px solid #21262d; padding:4px;'>➜ {step}</div>"
                 st.markdown(f"<div class='console-box'>{logs_html}</div>", unsafe_allow_html=True)
             else:
-                st.info("ℹ️ Awaiting data... (ID not found)")
+                st.info("ℹAwaiting data... (ID not found)")
         except:
-             st.warning("⚠️ Telemetry Offline")
+             st.warning("Telemetry Offline")
     else:
         st.info("Initiate a mission to view telemetry data")

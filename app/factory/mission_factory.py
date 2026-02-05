@@ -1,5 +1,5 @@
 # --- ІМПОРТИ ДРОНІВ (Додано MilitaryDrone) ---
-from app.drones.military import MilitaryDrone  # <--- ОЬ ТУТ БУЛО ПРОПУЩЕНО
+from app.drones.military import MilitaryDrone 
 from app.drones.exploration import ExplorationDrone
 from app.drones.agriculture import AgricultureDrone
 from app.drones.rescue import RescueDrone
@@ -34,7 +34,6 @@ from app.config.mission_config import MissionConfig
 class MissionFactory:
     @staticmethod
     def create_from_config(config: MissionConfig):
-        # --- 1. СТВОРЕННЯ СЕРЕДОВИЩА ---
         if config.environment_type == "air":
             env = AirEnvironment(
                 visibility=10000.0,
@@ -52,27 +51,21 @@ class MissionFactory:
                 roughness=config.behavior_params.get("roughness", 0.1)
             )
 
-        # --- 2. СТВОРЕННЯ ПЛАТФОРМИ ---
         if config.platform_type == "air":
-            platform = AirPlatform()  # ✅ Виправлено
+            platform = AirPlatform()
         elif config.platform_type == "sea":
             platform = SeaPlatform(protocol="NMEA-0183")
         else:
             platform = SurfacePlatform(wheels_type="offroad")
 
-        # --- 3. КОНТРОЛЕР ---
         controller = DroneController(platform)
 
-        # --- 4. СТВОРЕННЯ ДРОНА ---
-        # Створюємо спільний двигун для прикладу
         engine = ElectricEngine()
         name = config.mission_id
-        # Отримуємо вагу з конфігу або беремо дефолтну
         weight = config.behavior_params.get("weight", 10.0) 
-        drone_config = {} # Можна передати додаткові параметри
+        drone_config = {} 
 
         if config.mission_type == "military":
-            # ВИПРАВЛЕНО: Передаємо правильні аргументи в конструктор
             drone = MilitaryDrone(name, engine, weight, drone_config)
         elif config.mission_type == "agriculture":
             drone = AgricultureDrone(name, engine, weight, drone_config)
@@ -87,11 +80,9 @@ class MissionFactory:
         else:
             drone = ExplorationDrone(name, engine, weight, drone_config)
 
-        # Прив'язуємо середовище та контролер
         drone.environment = env
         drone.set_controller(controller)
 
-        # --- 5. СТРАТЕГІЯ ---
         if config.environment_type == "air":
             strategy = WindReactionStrategy()
         elif config.environment_type == "sea":
@@ -101,7 +92,7 @@ class MissionFactory:
             
         drone.set_strategy(strategy)
 
-        # --- 6. ЛАНЦЮЖОК ВІДПОВІДАЛЬНОСТІ ---
+        # --- ЛАНЦЮЖОК ВІДПОВІДАЛЬНОСТІ ---
         h1 = AdjustAltitudeHandler()
         h2 = RerouteHandler()
         h3 = EmergencyLandHandler()

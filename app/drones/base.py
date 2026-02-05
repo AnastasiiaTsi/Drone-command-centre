@@ -43,7 +43,6 @@ class Drone(ABC):
         self.navigate_to_area()
         self.perform_payload_action()
         
-        # --- ВАЖЛИВЕ ВИПРАВЛЕННЯ ---
         reaction_count = 0
         max_reactions = 3  
         
@@ -52,7 +51,7 @@ class Drone(ABC):
             self.react_to_environment(reading)
             reaction_count += 1
             self.mission_data.setdefault("events", []).append(f"Reaction #{reaction_count}")
-        # -----------------------------
+       
         
         self.collect_and_store_data()
         self.return_to_base()
