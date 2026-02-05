@@ -3,7 +3,6 @@ import os
 import logging
 import uvicorn
 
-# Додає кореневу директорію проекту до шляхів пошуку модулів
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.factory.mission_factory import MissionFactory
@@ -12,7 +11,7 @@ from app.config.mission_config import MissionConfig
 def create_test_scenarios():
     scenarios = []
     scenarios.append(MissionConfig(
-        mission_id="air_exp_001",
+        mission_id="test_flight_001",
         mission_type="exploration",
         environment_type="air",
         platform_type="air",
@@ -36,9 +35,13 @@ def run_console_tests():
         except Exception as e:
             print(f"Mission failed: {e}")
 
-if __name__ == "__main__":
+# --- ВАЖЛИВО: Огортаємо логіку в функцію ---
+def main():
     if len(sys.argv) > 1 and sys.argv[1] == "api":
-        print("Запуск API сервера для фронтенду...")
+        print("Запуск API сервера...")
         uvicorn.run("app.api.server:app", host="127.0.0.1", port=8000, reload=True)
     else:
         run_console_tests()
+
+if __name__ == "__main__":
+    main()

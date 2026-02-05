@@ -4,7 +4,6 @@ from app.engines.base import Engine
 from app.bridge.controller import DroneController
 from app.strategy.base import ReactionStrategy
 
-
 class Drone(ABC):
     def __init__(self, name: str, engine: Any, weight: float,
                  config: Dict) -> None:
@@ -44,9 +43,16 @@ class Drone(ABC):
         self.navigate_to_area()
         self.perform_payload_action()
         
-        while self.environment_requires_reaction():
+        # --- ВАЖЛИВЕ ВИПРАВЛЕННЯ ---
+        reaction_count = 0
+        max_reactions = 3  
+        
+        while self.environment_requires_reaction() and reaction_count < max_reactions:
             reading = self.environment.sample()
             self.react_to_environment(reading)
+            reaction_count += 1
+            self.mission_data.setdefault("events", []).append(f"Reaction #{reaction_count}")
+        # -----------------------------
         
         self.collect_and_store_data()
         self.return_to_base()
@@ -67,9 +73,14 @@ class Drone(ABC):
     def preflight_check(self):
         self.status = "Preflight"
         self.mission_data["preflight_check"] = "OK"
+        # Логування перевірки
+        self.mission_data.setdefault("events", []).append("✅ Preflight checks completed. Systems GREEN.")
 
     def navigate_to_area(self):
         if self.controller:
+            # Логування зльоту
+            self.mission_data.setdefault("events", []).append(f"🛫 Taking off. Navigating to target area {self.config.get('target_area')}.")
+            
             self.controller.takeoff()
             target = self.config.get("target_area", (0, 0))
             self.controller.move_to(target)
@@ -95,10 +106,16 @@ class Drone(ABC):
 
     def return_to_base(self):
         if self.controller:
+            # Логування повернення
+            self.mission_data.setdefault("events", []).append("🔙 Mission accomplished. Returning to base.")
+            
             base = self.config.get("base_area", (0, 0))
             self.controller.move_to(base)
             self.controller.land()
             self.status = "Returned"
+            
+            # Логування посадки
+            self.mission_data.setdefault("events", []).append("🛬 Landing sequence initiated. Touchdown confirmed.")
 
     def postprocess_results(self):
         self.mission_data["postprocessed"] = True

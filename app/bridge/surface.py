@@ -3,6 +3,9 @@ from typing import Tuple
 
 
 class SurfacePlatform(MovementImplementor):
+    def __init__(self, wheels_type: str = "standard") -> None:
+        self.wheels_type = wheels_type
+
     def takeoff(self) -> bool:
         print("SurfacePlatform: Starting ground movement")
         return True

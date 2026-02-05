@@ -1,8 +1,7 @@
 from app.strategy.base import ReactionStrategy
 from typing import Dict
 
-
-class WindReaction(ReactionStrategy):
+class WindReactionStrategy(ReactionStrategy):
     def react(self, mission, reading: Dict):
         if reading.get("wind_speed", 0) > 15:
             print("WindReaction: High wind detected, adjusting altitude")

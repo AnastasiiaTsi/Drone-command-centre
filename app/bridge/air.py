@@ -3,6 +3,11 @@ from typing import Tuple
 
 
 class AirPlatform(MovementImplementor):
+    def __init__(self, api_version: str = "v1.0") -> None:
+        self.api_version = api_version
+        # Можна додати логування версії, якщо потрібно
+        # print(f"AirPlatform initialized with API {api_version}")
+
     def takeoff(self) -> bool:
         print("AirPlatform: Taking off vertically")
         return True

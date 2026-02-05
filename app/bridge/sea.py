@@ -3,6 +3,9 @@ from typing import Tuple
 
 
 class SeaPlatform(MovementImplementor):
+    def __init__(self, protocol: str = "NMEA-0183") -> None:
+        self.protocol = protocol
+
     def takeoff(self) -> bool:
         print("SeaPlatform: Launching from water surface")
         return True

@@ -1,9 +1,12 @@
 from app.strategy.base import ReactionStrategy
 from typing import Dict
 
-
-class CrackReaction(ReactionStrategy):
+class CrackReactionStrategy(ReactionStrategy):
     def react(self, mission, reading: Dict):
-        if reading.get("terrain_roughness", 0) > 7:
-            print("CrackReaction: Rough terrain detected, slowing down")
-            mission.speed = max(mission.speed * 0.5, 1.0)
+        # Реагуємо, якщо виявлено тріщину або дефект
+        if reading.get("crack_detected", False):
+            print("CrackReaction: Surface defect found! Initiating detailed scan...")
+            if mission.controller:
+                # Зупиняємось для детального аналізу
+                mission.controller.hold()
+                # Тут можна додати логіку фотографування або маркування

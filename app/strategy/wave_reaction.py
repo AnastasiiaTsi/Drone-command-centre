@@ -1,10 +1,11 @@
 from app.strategy.base import ReactionStrategy
 from typing import Dict
 
-
-class WaveReaction(ReactionStrategy):
+class WaveReactionStrategy(ReactionStrategy):
     def react(self, mission, reading: Dict):
-        if reading.get("wave_height", 0) > 3:
-            print("WaveReaction: High waves detected, moving to safer area")
+        # Реагуємо на високі хвилі (наприклад, вище 2 метрів)
+        if reading.get("wave_height", 0) > 2.0:
+            print("WaveReaction: High waves detected, stabilizing...")
             if mission.controller:
-                mission.controller.adjust_course((5, 0))  # 2D вектор
+                # Зменшуємо швидкість або змінюємо курс
+                mission.controller.adjust_course((1, 1))

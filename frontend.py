@@ -4,95 +4,133 @@ import uuid
 import sys
 import os
 
-# Додає кореневу директорію проекту до шляхів пошуку модулів
+# Додає кореневу директорію до шляхів
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# --- НАЛАШТУВАННЯ СТОРІНКИ ---
 st.set_page_config(
-    page_title="Drone Mission Control",
-    page_icon="🛸",
+    page_title="ORION | Drone Command",
+    page_icon="📡",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 API_URL = "http://localhost:8000"
 
-# Стилізація інтерфейсу
+# --- CUSTOM CSS (HUD STYLE) ---
 st.markdown("""
     <style>
-    .main { background-color: #f5f7f9; }
-    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #007bff; color: white; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .mission-log { background-color: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 5px; font-family: 'Courier New', monospace; }
+    .stApp { background-color: #0e1117; color: #e6edf3; }
+    h1, h2, h3 { color: #58a6ff !important; font-family: 'Segoe UI', sans-serif; }
+    div[data-testid="stMetric"] {
+        background-color: #161b22; border: 1px solid #30363d;
+        padding: 15px; border-radius: 8px;
+    }
+    .stButton>button {
+        background: linear-gradient(90deg, #238636 0%, #2ea043 100%);
+        color: white; border: none; padding: 0.5rem; width: 100%;
+    }
+    .console-box {
+        background-color: #0d1117; border: 1px solid #30363d;
+        border-radius: 6px; padding: 15px; font-family: 'Courier New', monospace;
+        color: #7ee787; height: 400px; overflow-y: auto;
+    }
+    .custom-border {
+        border: 1px solid #30363d; border-radius: 8px;
+        padding: 20px; margin-bottom: 20px; background-color: #161b22;
+    }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-st.title("🛸 Drone Mission Control Center")
+# --- HEADER ---
+c1, c2 = st.columns([3, 1])
+with c1:
+    st.title("🛸 ORION COMMAND CENTER")
+    st.caption("TACTICAL DRONE OPERATIONS SYSTEM v2.0")
+with c2:
+    if st.button("🔄 REFRESH SYSTEM"):
+        st.rerun()
 st.markdown("---")
 
-col_setup, col_monitor = st.columns([1, 2], gap="large")
+# --- MAIN LAYOUT ---
+col_sidebar, col_main = st.columns([1, 2], gap="large")
 
-with col_setup:
-    st.header("🛠 Конфігуратор")
-    with st.container():
-        m_id = st.text_input("ID Місії", value=str(uuid.uuid4())[:8])
-        
-        drone_choice = st.selectbox("Тип дрона", 
-            ["military", "agriculture", "rescue", "pollution_monitoring", "exploration", "defects_detection"])
-        
-        env_choice = st.selectbox("Середовище", ["air", "sea", "surface"])
-        
-        st.radio("Тип двигуна", ["electric"], horizontal=True)
-        
-        st.markdown("### ⚙️ Додаткові параметри")
-        payload_weight = st.slider("Вага вантажу (кг)", 0, 50, 10)
-        
-        if st.button("Запустити місію 🚀"):
-            # Формування даних згідно з MissionConfig
-            payload = {
-                "mission_id": m_id,
-                "mission_type": drone_choice,
-                "environment_type": env_choice,
-                "platform_type": env_choice,
-                "mode": "single",
-                "target_area": [100.0, 100.0],
-                "base_area": [0.0, 0.0],
-                "thresholds": {},
-                "behavior_params": {"weight": float(payload_weight)}
-            }
-            
-            try:
-                with st.spinner('Підключення до систем...'):
-                    response = requests.post(f"{API_URL}/mission/run", json=payload)
-                    if response.status_code == 200:
-                        st.success(f"Місія {m_id} успішно ініційована!")
-                        st.balloons()
-                    else:
-                        st.error(f"Помилка API: {response.json().get('detail')}")
-            except Exception as e:
-                st.error(f"Сервер не відповідає. Перевірте запуск main.py api")
+with col_sidebar:
+    st.markdown("### 🛠 MISSION CONFIG")
+    # ВИПРАВЛЕННЯ: Використовуємо HTML div замість st.container(border=True)
+    st.markdown('<div class="custom-border">', unsafe_allow_html=True)
+    
+    m_id = st.text_input("MISSION ID", value=str(uuid.uuid4())[:8].upper())
+    
+    st.markdown("#### PLATFORM")
+    drone_choice = st.selectbox("Drone Class", 
+        ["military", "agriculture", "rescue", "pollution_monitoring", "exploration", "defects_detection"])
+    env_choice = st.selectbox("Environment", ["air", "sea", "surface"])
+    
+    st.markdown("#### PARAMETERS")
+    eng_type = st.select_slider("Engine Type", options=["electric", "hybrid", "combustion"])
+    payload_weight = st.slider("Payload (kg)", 0, 50, 15, format="%d kg")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    if st.button("🚀 INITIATE LAUNCH SEQUENCE"):
+        payload = {
+            "mission_id": m_id, "mission_type": drone_choice,
+            "environment_type": env_choice, "platform_type": env_choice,
+            "mode": "single", "target_area": [100.0, 100.0],
+            "base_area": [0.0, 0.0], "thresholds": {},
+            "behavior_params": {"weight": float(payload_weight), "wind_speed": 5.0}
+        }
+        try:
+            with st.spinner('Uplinking to drone swarm...'):
+                response = requests.post(f"{API_URL}/mission/run", json=payload, timeout=5)
+                if response.status_code == 200:
+                    st.success(f"✅ MISSION {m_id} DEPLOYED")
+                    st.session_state['last_mission_id'] = m_id
+                else:
+                    st.error(f"❌ FAILED: {response.json().get('detail')}")
+        except requests.exceptions.ConnectionError:
+            st.error("🛑 CRITICAL: SERVER OFFLINE (Run main.py)")
+        except Exception as e:
+            st.error(f"🛑 ERROR: {e}")
 
-with col_monitor:
-    st.header("📊 Моніторинг та телеметрія")
-    search_id = st.text_input("Введіть ID для отримання звіту:", placeholder="Наприклад: a1b2c3d4")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_main:
+    st.markdown("### 📊 TELEMETRY & LOGS")
+    search_col, _ = st.columns([2,1])
+    with search_col:
+        default_id = st.session_state.get('last_mission_id', "")
+        search_id = st.text_input("Search Mission ID:", value=default_id)
     
     if search_id:
-        with st.expander("Завантаження даних місії...", expanded=True):
-            try:
-                res = requests.get(f"{API_URL}/mission/result/{search_id}")
-                if res.status_code == 200:
-                    data = res.json()
-                    m1, m2, m3 = st.columns(3)
-                    m1.metric("Тип дрона", data["drone_type"].upper())
-                    m2.metric("Середовище", data["environment"])
-                    m3.metric("Статус", "COMPLETED")
-                    
-                    st.subheader("📋 Лог виконання (Template Method steps)")
-                    log_html = "".join([f"<p style='margin:5px 0;'> > {step}</p>" for step in data["result"]])
-                    st.markdown(f"<div class='mission-log'>{log_html}</div>", unsafe_allow_html=True)
+        try:
+            res = requests.get(f"{API_URL}/mission/result/{search_id}", timeout=2)
+            if res.status_code == 200:
+                data = res.json()
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("STATUS", "COMPLETED", delta="OK")
+                m2.metric("DRONE", data["drone_type"].upper())
+                m3.metric("ENV", data["environment"].upper())
+                m4.metric("BATTERY", "87%", "-2%")
+                
+                logs_html = ""
+                # Обробка результату, який може бути рядком або списком
+                results_data = data["result"]
+                if isinstance(results_data, dict): # Якщо це словник з деталями
+                    events = results_data.get("events", [])
+                    logs = events + [f"Task: {results_data.get('task_result')}"]
+                elif isinstance(results_data, list):
+                    logs = results_data
                 else:
-                    st.warning("Дані для вказаного ID відсутні в базі.")
-            except:
-                st.error("Помилка з'єднання з API.")
+                    logs = [str(results_data)]
 
-st.markdown("---")
-st.caption("Drone Mission Framework v1.0 | Лабораторна робота №7")
+                for step in logs:
+                    logs_html += f"<div style='border-bottom:1px solid #21262d; padding:4px;'>➜ {step}</div>"
+                st.markdown(f"<div class='console-box'>{logs_html}</div>", unsafe_allow_html=True)
+            else:
+                st.info("ℹ️ Awaiting data... (ID not found)")
+        except:
+             st.warning("⚠️ Telemetry Offline")
+    else:
+        st.info("Initiate a mission to view telemetry data")
